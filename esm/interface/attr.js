@@ -2,7 +2,6 @@ import {ATTRIBUTE_NODE} from '../shared/constants.js';
 import {CHANGED, VALUE} from '../shared/symbols.js';
 import {String, ignoreCase} from '../shared/utils.js';
 import {attrAsJSON} from '../shared/jsdon.js';
-import {emptyAttributes} from '../shared/attributes.js';
 
 import {attributeChangedCallback as moAttributes} from './mutation-observer.js';
 import {attributeChangedCallback as ceAttributes} from './custom-element-registry.js';
@@ -42,7 +41,7 @@ export class Attr extends Node {
 
   toString() {
     const {name, [VALUE]: value} = this;
-    if (emptyAttributes.has(name) && !value) {
+    if (!value) {
       return ignoreCase(this) ? name : `${name}=""`;
     }
     const escapedValue = (ignoreCase(this) ? value : escape(value)).replace(QUOTE, '&quot;');

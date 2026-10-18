@@ -19,7 +19,7 @@ export const setInnerHtml = (node, html) => {
   const {constructor} = ownerDocument;
   const document = new constructor;
   document[CUSTOM_ELEMENTS] = ownerDocument[CUSTOM_ELEMENTS];
-  const {childNodes} = parseFromString(document, ignoreCase(node), html);
+  const {childNodes} = parseFromString(document, ignoreCase(node) && node.localName !== 'svg', html);
 
   node.replaceChildren(...childNodes.map(setOwnerDocument, ownerDocument));
 };

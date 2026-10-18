@@ -3,7 +3,6 @@ const {ATTRIBUTE_NODE} = require('../shared/constants.js');
 const {CHANGED, VALUE} = require('../shared/symbols.js');
 const {String, ignoreCase} = require('../shared/utils.js');
 const {attrAsJSON} = require('../shared/jsdon.js');
-const {emptyAttributes} = require('../shared/attributes.js');
 
 const {attributeChangedCallback: moAttributes} = require('./mutation-observer.js');
 const {attributeChangedCallback: ceAttributes} = require('./custom-element-registry.js');
@@ -43,7 +42,7 @@ class Attr extends Node {
 
   toString() {
     const {name, [VALUE]: value} = this;
-    if (emptyAttributes.has(name) && !value) {
+    if (!value) {
       return ignoreCase(this) ? name : `${name}=""`;
     }
     const escapedValue = (ignoreCase(this) ? value : escape(value)).replace(QUOTE, '&quot;');

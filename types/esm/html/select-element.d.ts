@@ -7,6 +7,9 @@ export class HTMLSelectElement extends HTMLElement implements globalThis.HTMLSel
     get disabled(): any;
     set name(value: any);
     get name(): any;
+    /** Select the first matching option and reflect selection into SSR markup. */
+    set value(value: any);
+    /** Return the selected value, or an empty string when nothing is selected. */
     get value(): any;
 }
 import { HTMLElement } from './element.js';

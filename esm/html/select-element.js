@@ -35,7 +35,20 @@ class HTMLSelectElement extends HTMLElement {
   set name(value) { this.setAttribute('name', value); }
   /* c8 ignore stop */
 
-  get value() { return this.querySelector('option[selected]')?.value; }
+  /** Return the selected value, or an empty string when nothing is selected. */
+  get value() { return this.querySelector('option[selected]')?.value ?? ''; }
+
+  /** Select the first matching option and reflect selection into SSR markup. */
+  set value(value) {
+    let matched = false;
+    value = String(value);
+
+    for (let option of this.querySelectorAll('option')) {
+      let selected = !matched && option.value === value;
+      booleanAttribute.set(option, 'selected', selected);
+      matched = matched || selected;
+    }
+  }
 }
 
 registerHTMLClass(tagName, HTMLSelectElement);

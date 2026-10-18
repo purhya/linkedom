@@ -2597,104 +2597,6 @@ class MutationObserverClass {
   }
 }
 
-const emptyAttributes = new Set([
-  'allowfullscreen',
-  'allowpaymentrequest',
-  'async',
-  'autofocus',
-  'autoplay',
-  'checked',
-  'class',
-  'contenteditable',
-  'controls',
-  'default',
-  'defer',
-  'disabled',
-  'draggable',
-  'formnovalidate',
-  'hidden',
-  'id',
-  'ismap',
-  'itemscope',
-  'loop',
-  'multiple',
-  'muted',
-  'nomodule',
-  'novalidate',
-  'open',
-  'playsinline',
-  'readonly',
-  'required',
-  'reversed',
-  'selected',
-  'style',
-  'truespeed'
-]);
-
-const setAttribute = (element, attribute) => {
-  const {[VALUE]: value, name} = attribute;
-  attribute.ownerElement = element;
-  knownSiblings(element, attribute, element[NEXT]);
-  if (name === 'class')
-    element.className = value;
-  attributeChangedCallback(element, name, null);
-  attributeChangedCallback$1(element, name, null, value);
-};
-
-const removeAttribute = (element, attribute) => {
-  const {[VALUE]: value, name} = attribute;
-  knownAdjacent(attribute[PREV], attribute[NEXT]);
-  attribute.ownerElement = attribute[PREV] = attribute[NEXT] = null;
-  if (name === 'class')
-    element[CLASS_LIST] = null;
-  attributeChangedCallback(element, name, value);
-  attributeChangedCallback$1(element, name, value, null);
-};
-
-const booleanAttribute = {
-  get(element, name) {
-    return element.hasAttribute(name);
-  },
-  set(element, name, value) {
-    if (value)
-      element.setAttribute(name, '');
-    else
-      element.removeAttribute(name);
-  }
-};
-
-const numericAttribute = {
-  get(element, name) {
-    return parseFloat(element.getAttribute(name) || 0);
-  },
-  set(element, name, value) {
-    element.setAttribute(name, value);
-  }
-};
-
-const stringAttribute = {
-  get(element, name) {
-    return element.getAttribute(name) || '';
-  },
-  set(element, name, value) {
-    element.setAttribute(name, value);
-  }
-};
-
-/* oddly enough, this apparently is not a thing
-export const nullableAttribute = {
-  get(element, name) {
-    return element.getAttribute(name);
-  },
-  set(element, name, value) {
-    if (value === null)
-      element.removeAttribute(name);
-    else
-      element.setAttribute(name, value);
-  }
-};
-*/
-
 // https://dom.spec.whatwg.org/#interface-eventtarget
 
 const wm = new WeakMap();
@@ -3029,7 +2931,7 @@ let Attr$1 = class Attr extends Node$1 {
 
   toString() {
     const {name, [VALUE]: value} = this;
-    if (emptyAttributes.has(name) && !value) {
+    if (!value) {
       return ignoreCase(this) ? name : `${name}=""`;
     }
     const escapedValue = (ignoreCase(this) ? value : escape(value)).replace(QUOTE, '&quot;');
@@ -6631,7 +6533,7 @@ const existsOne = (test, elements) => elements.some(
 );
 
 const getAttributeValue = (element, name) => name === 'class' ?
-                            element.classList.value : element.getAttribute(name);
+  (element.getAttributeNode('class')?.value ?? null) : element.getAttribute(name);
 
 const getChildren = ({childNodes}) => childNodes;
 
@@ -7123,6 +7025,70 @@ let DocumentType$1 = class DocumentType extends Node$1 {
   }
 };
 
+const setAttribute = (element, attribute) => {
+  const {[VALUE]: value, name} = attribute;
+  attribute.ownerElement = element;
+  knownSiblings(element, attribute, element[NEXT]);
+  if (name === 'class')
+    element.className = value;
+  attributeChangedCallback(element, name, null);
+  attributeChangedCallback$1(element, name, null, value);
+};
+
+const removeAttribute = (element, attribute) => {
+  const {[VALUE]: value, name} = attribute;
+  knownAdjacent(attribute[PREV], attribute[NEXT]);
+  attribute.ownerElement = attribute[PREV] = attribute[NEXT] = null;
+  if (name === 'class')
+    element[CLASS_LIST] = null;
+  attributeChangedCallback(element, name, value);
+  attributeChangedCallback$1(element, name, value, null);
+};
+
+const booleanAttribute = {
+  get(element, name) {
+    return element.hasAttribute(name);
+  },
+  set(element, name, value) {
+    if (value)
+      element.setAttribute(name, '');
+    else
+      element.removeAttribute(name);
+  }
+};
+
+const numericAttribute = {
+  get(element, name) {
+    return parseFloat(element.getAttribute(name) || 0);
+  },
+  set(element, name, value) {
+    element.setAttribute(name, value);
+  }
+};
+
+const stringAttribute = {
+  get(element, name) {
+    return element.getAttribute(name) || '';
+  },
+  set(element, name, value) {
+    element.setAttribute(name, value);
+  }
+};
+
+/* oddly enough, this apparently is not a thing
+export const nullableAttribute = {
+  get(element, name) {
+    return element.getAttribute(name);
+  },
+  set(element, name, value) {
+    if (value === null)
+      element.removeAttribute(name);
+    else
+      element.setAttribute(name, value);
+  }
+};
+*/
+
 /**
  * @param {Node} node
  * @returns {String}
@@ -7138,7 +7104,7 @@ const setInnerHtml = (node, html) => {
   const {constructor} = ownerDocument;
   const document = new constructor;
   document[CUSTOM_ELEMENTS] = ownerDocument[CUSTOM_ELEMENTS];
-  const {childNodes} = parseFromString(document, ignoreCase(node), html);
+  const {childNodes} = parseFromString(document, ignoreCase(node) && node.localName !== 'svg', html);
 
   node.replaceChildren(...childNodes.map(setOwnerDocument, ownerDocument));
 };
@@ -7418,8 +7384,9 @@ let CSSStyleDeclaration$1 = class CSSStyleDeclaration extends Map {
 const {prototype} = CSSStyleDeclaration$1;
 
 function push(value, key) {
-  if (key !== PRIVATE)
+  if (key !== PRIVATE && value !== '') {
     this.push(`${key}:${value}`);
+  }
 }
 
 // https://dom.spec.whatwg.org/#interface-event
@@ -8449,16 +8416,39 @@ const tagName$h = 'template';
 class HTMLTemplateElement extends HTMLElement {
   constructor(ownerDocument) {
     super(ownerDocument, tagName$h);
-    const content = this.ownerDocument.createDocumentFragment();
+    let content = this.ownerDocument.createDocumentFragment();
     (this[CONTENT] = content)[PRIVATE] = this;
   }
 
+  /** Read markup from the template's content fragment. */
+  get innerHTML() {
+    return getInnerHtml(this[CONTENT]);
+  }
+
+  /** Replace markup in the template's content fragment. */
+  set innerHTML(html) {
+    setInnerHtml(this[CONTENT], html);
+  }
+
+  /** Move parsed children into the template's content fragment. */
   get content() {
     if (this.hasChildNodes() && !this[CONTENT].hasChildNodes()) {
-      for (const node of this.childNodes)
-        this[CONTENT].appendChild(node.cloneNode(true));
+      for (let node of this.childNodes) {
+        this[CONTENT].appendChild(node);
+      }
     }
     return this[CONTENT];
+  }
+
+  /** Copy the content fragment when cloning deeply. */
+  cloneNode(deep = false) {
+    let cloned = super.cloneNode(deep);
+
+    if (deep) {
+      cloned.innerHTML = this.innerHTML;
+    }
+
+    return cloned;
   }
 }
 
@@ -11357,7 +11347,20 @@ class HTMLSelectElement extends HTMLElement {
   set name(value) { this.setAttribute('name', value); }
   /* c8 ignore stop */
 
-  get value() { return this.querySelector('option[selected]')?.value; }
+  /** Return the selected value, or an empty string when nothing is selected. */
+  get value() { return this.querySelector('option[selected]')?.value ?? ''; }
+
+  /** Select the first matching option and reflect selection into SSR markup. */
+  set value(value) {
+    let matched = false;
+    value = String(value);
+
+    for (let option of this.querySelectorAll('option')) {
+      let selected = !matched && option.value === value;
+      booleanAttribute.set(option, 'selected', selected);
+      matched = matched || selected;
+    }
+  }
 }
 
 registerHTMLClass(tagName$8, HTMLSelectElement);

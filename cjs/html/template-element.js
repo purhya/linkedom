@@ -3,6 +3,8 @@ const {CONTENT, PRIVATE} = require('../shared/symbols.js');
 
 const {registerHTMLClass} = require('../shared/register-html-class.js');
 
+const {getInnerHtml, setInnerHtml} = require('../mixin/inner-html.js');
+
 const {HTMLElement} = require('./element.js');
 
 const tagName = 'template';
@@ -13,16 +15,39 @@ const tagName = 'template';
 class HTMLTemplateElement extends HTMLElement {
   constructor(ownerDocument) {
     super(ownerDocument, tagName);
-    const content = this.ownerDocument.createDocumentFragment();
+    let content = this.ownerDocument.createDocumentFragment();
     (this[CONTENT] = content)[PRIVATE] = this;
   }
 
+  /** Read markup from the template's content fragment. */
+  get innerHTML() {
+    return getInnerHtml(this[CONTENT]);
+  }
+
+  /** Replace markup in the template's content fragment. */
+  set innerHTML(html) {
+    setInnerHtml(this[CONTENT], html);
+  }
+
+  /** Move parsed children into the template's content fragment. */
   get content() {
     if (this.hasChildNodes() && !this[CONTENT].hasChildNodes()) {
-      for (const node of this.childNodes)
-        this[CONTENT].appendChild(node.cloneNode(true));
+      for (let node of this.childNodes) {
+        this[CONTENT].appendChild(node);
+      }
     }
     return this[CONTENT];
+  }
+
+  /** Copy the content fragment when cloning deeply. */
+  cloneNode(deep = false) {
+    let cloned = super.cloneNode(deep);
+
+    if (deep) {
+      cloned.innerHTML = this.innerHTML;
+    }
+
+    return cloned;
   }
 }
 

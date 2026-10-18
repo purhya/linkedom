@@ -123,6 +123,7 @@ export class CSSStyleDeclaration extends Map {
 const {prototype} = CSSStyleDeclaration;
 
 function push(value, key) {
-  if (key !== PRIVATE)
+  if (key !== PRIVATE && value !== '') {
     this.push(`${key}:${value}`);
+  }
 }
