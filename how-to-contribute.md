@@ -18,6 +18,13 @@ All files in `./cjs` are automatically overwritten every time something in `./es
 
 ## Testing
 
+Run `npm run publish:global` (`npm.cmd run publish:global` in PowerShell) to
+rebuild ESM-derived outputs, delete the existing package directory in
+`npm root -g`, and copy the publishable files into a fresh directory. This
+copies files directly, then installs runtime dependencies without optional
+packages or lifecycle scripts. It does not publish to the npm registry or run the
+test suite; `npm run build` still builds and runs tests.
+
 Almost every `./esm` file, within its folder, is replicated in the `./test` folder too.
 
 Each test is executed twice: once for `linkedom` module, and a second pass for `linkedom/cached` export.

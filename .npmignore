@@ -5,6 +5,7 @@
 coverage/
 node_modules/
 rollup/
+scripts/
 test/
 linkedom-benchmark.jpg
 deep-dive.md
