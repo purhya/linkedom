@@ -1,4 +1,5 @@
 'use strict';
+require('./dom-environment.js');
 const {DOMParser} = require('./dom/parser.js');
 const {Document: _Document} = require('./interface/document.js');
 
@@ -35,9 +36,22 @@ exports.DOMParser = DOMParser;
   exports.NodeFilter = m.NodeFilter;
 })(require('./interface/node-filter.js'));
 
-const parseHTML = (html, globals = null) => (new DOMParser).parseFromString(
-  html, 'text/html', globals
-).defaultView;
+const parseHTML = (html, globals = null) => {
+  let win = (new DOMParser).parseFromString(html, 'text/html', globals).defaultView;
+  globalThis.window = win;
+  globalThis.document = win.document;
+  if (globalThis.navigator) {
+    Object.defineProperty(win, 'navigator', {value: win.navigator, configurable: true});
+  }
+  else {
+    globalThis.navigator = win.navigator;
+  }
+  globalThis.customElements = win.customElements;
+  globalThis.HTMLElement = win.HTMLElement;
+  globalThis.Element = win.Element;
+  globalThis.Node = win.Node;
+  return win;
+};
 exports.parseHTML = parseHTML;
 
 function Document() {

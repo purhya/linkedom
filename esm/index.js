@@ -1,3 +1,4 @@
+import './dom-environment.js';
 import {DOMParser} from './dom/parser.js';
 import {Document as _Document} from './interface/document.js';
 
@@ -17,9 +18,22 @@ export {InputEvent} from './interface/input-event.js';
 export {NodeList} from './interface/node-list.js';
 export {NodeFilter} from './interface/node-filter.js';
 
-export const parseHTML = (html, globals = null) => (new DOMParser).parseFromString(
-  html, 'text/html', globals
-).defaultView;
+export const parseHTML = (html, globals = null) => {
+  let win = (new DOMParser).parseFromString(html, 'text/html', globals).defaultView;
+  globalThis.window = win;
+  globalThis.document = win.document;
+  if (globalThis.navigator) {
+    Object.defineProperty(win, 'navigator', {value: win.navigator, configurable: true});
+  }
+  else {
+    globalThis.navigator = win.navigator;
+  }
+  globalThis.customElements = win.customElements;
+  globalThis.HTMLElement = win.HTMLElement;
+  globalThis.Element = win.Element;
+  globalThis.Node = win.Node;
+  return win;
+};
 
 export function Document() {
   illegalConstructor();
